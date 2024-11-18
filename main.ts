@@ -23,22 +23,30 @@ interface DetachResult {
  }
  
  export async function detach(traceData: JSON, toDetach: string[]): Promise<DetachResult> {
-  var detached: string[] = []
-  toDetach.forEach(async path => {
-    const matches = JSONPath({ path, json: traceData });
-    const content = new TextEncoder().encode(JSON.stringify(matches));
-    detached.push(encodeBase64(content));
-    
-    const hash = await crypto.subtle.digest("SHA-256", content);
-    traceData = JSONPath({
+  var detached: string[] = [];
+  
+  for (const path of toDetach) {
+    JSONPath({
       path,
       json: traceData,
-      callback: () => "~" + encodeBase64(new Uint8Array(hash)),
-      resultType: 'all'
+      callback: async function (value, _, { parent, key }) {
+        console.log(value)
+        const content = new TextEncoder().encode(JSON.stringify(value));
+        console.log(content)
+        detached.push(encodeBase64(content));
+        const hash = await crypto.subtle.digest("SHA-256", content);
+        console.log(hash)
+        parent[key] = "~" + encodeBase64(new Uint8Array(hash));
+        console.log(parent)
+        return parent;
+      },
+      //resultType: 'all'
     });
-  });
+    //traceData[path] = v;
+  }
+  
   return { traceData, detached };
- }
+}
 
 // Learn more at https://docs.deno.com/runtime/manual/examples/module_metadata#concepts
 if (import.meta.main) {
@@ -48,7 +56,7 @@ if (import.meta.main) {
   // detaching
   const attached = JSON.parse("{\"key\": \"asdf\" }");
   console.log("attached:", attached);
-  const detached = await detach(attached, ["key"]);
+  const detached = await detach(attached, ["$.key"]);
   console.log("detached:", detached);
   // signing
   console.log("signed trace:", await signJws(detached.traceData, privateKey));
