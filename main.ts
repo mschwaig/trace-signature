@@ -67,12 +67,15 @@ if (import.meta.main) {
   const { publicKey, privateKey } = await jose.generateKeyPair('EdDSA', { crv: 'Ed25519' });
   console.log("key:", publicKey);
   // detaching
-  const attached = JSON.parse("{\"key\": \"asdyvyasdfasfsafasdfasfasfasfdasfafsafsafasdfsafasfsafasdfasfsdfasdfasfsadfsadfasfdsdfasfdafvcsasfdsafasasdfsf\" }");
+  const attached = JSON.parse("{\"key\": \"asdf\" }"); // https://gchq.github.io/CyberChef/#recipe=SHA2('256',64,160)From_Hex('Auto')To_Base64('A-Za-z0-9%2B/%3D')&input=ImFzZGYi
   console.log("attached:", attached);
-  const detached = await detach(attached, ["key"]);
+  const detached = await detach(attached, ["key"]); // https://gchq.github.io/CyberChef/#recipe=To_Base64('A-Za-z0-9%2B/%3D')&input=ImFzZGYi
   console.log("detached:", detached);
   // signing
-  console.log("signed trace:", await signJws(detached.traceData, privateKey));
+
+  const signed = await signJws(detached.traceData, privateKey);
+  console.log("signed trace:", signed);
+  console.log("detachable elements:");
   for (const attr of detached.detached) {
     console.log(attr)
   }
