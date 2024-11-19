@@ -1,6 +1,5 @@
 import * as jose from 'https://deno.land/x/jose@v5.9.6/index.ts'
 import { encodeBase64 } from "https://deno.land/x/jose@v5.9.6/runtime/base64url.ts";
-import { JSONPath } from 'npm:jsonpath-plus@10.2.0'
 
 export async function signJws(traceData: JSON, privateKey: jose.KeyLike): Promise<string> {
   const traceSignature = await new jose.CompactSign(
@@ -24,25 +23,13 @@ interface DetachResult {
  
  export async function detach(traceData: JSON, toDetach: string[]): Promise<DetachResult> {
   var detached: string[] = [];
-  
-  for (const path of toDetach) {
-    JSONPath({
-      path,
-      json: traceData,
-      callback: async function (value, _, { parent, key }) {
-        console.log(value)
-        const content = new TextEncoder().encode(JSON.stringify(value));
-        console.log(content)
-        detached.push(encodeBase64(content));
-        const hash = await crypto.subtle.digest("SHA-256", content);
-        console.log(hash)
-        parent[key] = "~" + encodeBase64(new Uint8Array(hash));
-        console.log(parent)
-        return parent;
-      },
-      //resultType: 'all'
-    });
-    //traceData[path] = v;
+
+  for (const attr of toDetach) {
+    const value = traceData[attr];
+    const content = new TextEncoder().encode(JSON.stringify(value));
+    detached.push("~" + encodeBase64(content));
+    const hash = await crypto.subtle.digest("SHA-256", content);
+    traceData[attr] = "~" + encodeBase64(new Uint8Array(hash));
   }
   
   return { traceData, detached };
@@ -54,12 +41,15 @@ if (import.meta.main) {
   const { publicKey, privateKey } = await jose.generateKeyPair('EdDSA', { crv: 'Ed25519' });
   console.log("key:", publicKey);
   // detaching
-  const attached = JSON.parse("{\"key\": \"asdf\" }");
+  const attached = JSON.parse("{\"key\": \"asdyvyasdfasfsafasdfasfasfasfdasfafsafsafasdfsafasfsafasdfasfsdfasdfasfsadfsadfasfdsdfasfdafvcsasfdsafasasdfsf\" }");
   console.log("attached:", attached);
-  const detached = await detach(attached, ["$.key"]);
+  const detached = await detach(attached, ["key"]);
   console.log("detached:", detached);
   // signing
   console.log("signed trace:", await signJws(detached.traceData, privateKey));
+  for (const attr of detached.detached) {
+    console.log(attr)
+  }
 
   // verifying
 
