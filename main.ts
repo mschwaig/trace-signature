@@ -1,6 +1,32 @@
 import * as jose from 'https://deno.land/x/jose@v5.9.6/index.ts'
 import { encodeBase64 } from "https://deno.land/x/jose@v5.9.6/runtime/base64url.ts";
 
+/* illustrative example 
+
+base64({ type: "", v="2", algo="ES256" }).
+base64({
+    in:
+    buildLog: "~{base64(hash(logContent))}",
+    builder = {
+        key = "nixpkgs:growing-jennet:${key(nixpkgs:growing-jennet)}",
+        flakeUrl: asfasf.attr
+        keyAtt: "~{base64(hash(keyAttestation)))}",
+    }
+    stats = "~{base64(hash(keyAttestation)))}",
+    out:
+}).
+signature(everything_above)
+~base64(
+    keyAttestation
+)
+~base64(
+    logContent
+)
+~base64(
+    hash(runtime stats)
+)
+ */
+
 export async function signJws(traceData: JSON, privateKey: jose.KeyLike): Promise<string> {
   const traceSignature = await new jose.CompactSign(
     new TextEncoder().encode(JSON.stringify(traceData))
