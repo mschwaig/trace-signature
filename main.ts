@@ -8,6 +8,7 @@ base64({
     in:
     buildLog: "~{base64(hash(logContent))}",
     builder = {
+        rebuild = "1",
         key = "nixpkgs:growing-jennet:${key(nixpkgs:growing-jennet)}",
         flakeUrl: asfasf.attr
         keyAtt: "~{base64(hash(keyAttestation)))}",
