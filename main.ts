@@ -3,7 +3,7 @@ import { encodeBase64 } from "https://deno.land/x/jose@v5.9.6/runtime/base64url.
 
 /* illustrative example 
 
-base64({ type: "", v="2", algo="ES256" }).
+base64({ type: "", v="2", alg="EdDSA", crv="Ed25519", detach="SHA-256" }).
 base64({
     in:
     buildLog: "~{base64(hash(logContent))}",
