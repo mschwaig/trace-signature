@@ -65,8 +65,20 @@ interface DetachResult {
 // Learn more at https://docs.deno.com/runtime/manual/examples/module_metadata#concepts
 if (import.meta.main) {
   // generating key
-  const { publicKey, privateKey } = await jose.generateKeyPair('EdDSA', { crv: 'Ed25519' });
-  console.log("key:", publicKey);
+  const { publicKey, privateKey } = await jose.generateKeyPair('EdDSA', { crv: 'Ed25519' }, true, ["sign", "verify"]);
+  console.log("key metadata:", publicKey);
+  const publicKeyBuffer = await crypto.subtle.exportKey(
+    "raw",
+    publicKey
+  );
+
+  // Convert to base64
+  const publicKeyBase64 = btoa(
+    String.fromCharCode(...new Uint8Array(publicKeyBuffer))
+  );
+
+  // Print the public key
+  console.log("key:", publicKeyBase64);
   // detaching
   const attached = JSON.parse("{\"key\": \"asdf\" }"); // https://gchq.github.io/CyberChef/#recipe=SHA2('256',64,160)From_Hex('Auto')To_Base64('A-Za-z0-9%2B/%3D')&input=ImFzZGYi
   console.log("attached:", attached);
